@@ -185,6 +185,7 @@ async def generate(
 
     message = response.choices[0].message
     assistant_message = message.model_dump(exclude_none=True)
+    assistant_message.setdefault("content", "")
 
     usage = getattr(response, "usage", None)
     token_usage = int(getattr(usage, "total_tokens", 0) or 0)

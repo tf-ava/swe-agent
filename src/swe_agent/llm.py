@@ -185,6 +185,7 @@ async def generate(
 
     message = response.choices[0].message
     assistant_message = message.model_dump(exclude_none=True)
+    assistant_message.setdefault("content", "")
 
     usage = getattr(response, "usage", None)
     token_usage = int(getattr(usage, "total_tokens", 0) or 0)
@@ -313,6 +314,8 @@ def _split_tool_calls(
 
 
 def _needs_confirm(tool_call: dict[str, Any]) -> bool:
+    if os.getenv("SWE_AGENT_AUTO_APPROVE_TOOLS", "").lower() in {"1", "true", "yes"}:
+        return False
     name = (tool_call.get("function") or {}).get("name")
     return name in CONFIRM_TOOLS
 

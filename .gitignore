@@ -12,3 +12,6 @@ wheels/
 
 .env
 .agents
+
+#存储的session数据
+.sweagent

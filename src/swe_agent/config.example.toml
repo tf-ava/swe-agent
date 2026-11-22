@@ -1,0 +1,11 @@
+# 供 `swe-agent init` 创建 config.toml 时使用的初始配置模板。
+# 正常运行只读取用户的配置文件，读取失败时不会回退到此模板。
+# 请求模型前，请按实际提供商修改模型名称和服务地址。
+[session_defaults]
+model = "provider/model"
+base_url = "https://example.com/v1"
+api_key_env = "SWE_AGENT_API_KEY"
+compress_model = "provider/model"
+context_token_limit = 120000
+keep_recent_messages = 12
+max_steps = 15

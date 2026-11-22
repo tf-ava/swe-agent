@@ -1,5 +1,58 @@
 # swe-agent
 
+## 新版本开发进度
+
+项目正在重构。安装后的 `swe-agent` 已切换到 `cli_new.py`，当前提供 `init` 和 session 管理命令；新版 `ask` 和交互式 `chat` 将逐步接入。旧入口和编排代码保留供参考，本文后面的旧版功能说明不代表新入口当前可用的命令。
+
+更新安装后初始化：
+
+```powershell
+uv sync
+swe-agent init
+```
+
+也可以直接调用新入口：
+
+```powershell
+python -m swe_agent.cli_new init
+```
+
+默认在用户目录的 `.sweagent` 下创建 `config.toml`、`.env` 和 `sessions.sqlite3`。如需指定位置，在启动前设置环境变量：
+
+```powershell
+$env:SWE_AGENT_HOME = "D:\AgentData"
+swe-agent init
+```
+
+初始化后，编辑 `config.toml` 中的模型名称和服务地址，在数据目录的 `.env` 中填写配置所引用的密钥。初始化不要求已有密钥，不请求模型，也不创建 session。
+
+重复运行会保留已有配置、密钥文件和会话数据，只补建缺失资源。配置无效或数据库结构不兼容时会报错；中途失败不会整体回滚已经创建的文件，修正问题后可重新运行。初始化不会加载当前项目的 `.env`，集中目录中的密钥读取将在模型执行接入时实现。
+
+### Session 管理
+
+```powershell
+# 创建空会话；省略 --path 时使用当前工作目录。
+swe-agent session create demo --path "D:\projects\example"
+
+# 仅修改明确指定的配置项，其余字段保留。
+swe-agent session config demo --model "provider/model" --max-steps 20
+
+# 查看保存的会话属性和配置，以 JSON 显示，不加载对话历史。
+swe-agent session show demo
+
+# 按最近更新时间倒序查询；先显示前 20 条，再跳过前 20 条查询。
+swe-agent session list --limit 20 --offset 0
+swe-agent session list --limit 20 --offset 20
+```
+
+配置修改支持 `--model`、`--base-url`、`--api-key-env`、`--compress-model`、`--context-token-limit`、`--keep-recent-messages`、`--max-steps`。`--api-key-env` 是密钥环境变量名，不是密钥值。多字段修改整体校验通过才保存；不传修改项会提示使用 `session show`。
+
+创建会话时从全局配置复制默认值，之后全局配置变化不影响已有会话。工作目录在创建时确定。重复 ID、无效工作目录或不存在的会话都会报错。所有会话命令都要求已有数据库，不自动初始化；查询和修改已有会话不依赖全局配置文件或 `.env`，也不请求模型。
+
+列表仅显示 ID、状态、工作目录、最近更新时间；时间包含本地时区偏移，不生成会话标题或对话总结。`offset` 表示跳过多少条记录，持续有更新时分页结果可能移动。对话 history 查询和删除命令尚未实现。
+
+## 原版本说明（供参考）
+
 一个最小可用的 SWE Agent CLI。它可以在指定工作目录中读取代码、搜索代码、查看 git 状态、运行命令、生成文件 diff，并在用户确认后执行高风险操作。
 。
 
